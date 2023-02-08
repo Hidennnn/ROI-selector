@@ -1,9 +1,8 @@
 # ROI-selector
 
-Version 1.0.0 - 07.02.2023
+Version 1.0.1 - 07.02.2023
 
 Function allows to mark ROI thanks to easy GUI from cv2. Function automatically rescales images for fitting on the screen, but marked ROI is respondent for original size.
-
 
 !!! Names of images have to be in format "label_number.format". !!!
     
@@ -11,20 +10,15 @@ Function allows to mark ROI thanks to easy GUI from cv2. Function automatically 
         source (str | List[str]): Directory to folder with images, directory to folder with others folders which contain
                                   images or list of directories to folders with images.
 
-        output_file_name (str): Name of file where ROI parameters will be saved. If output_file_name does not end
-                                with ".txt", function will add that suffix.
-
         labels (List[str]): List of labels names. In output file label of image will be saved as number. That number
                             is index of label name in given list.
+
+        output_folder (str): Folder where txt files with ROI values will be saved.
 
         many_sources (int, default: 0): Flag which allow to determine source type.
                                         0 - directory to folder with images,
                                         1 - directory to folder with others folders which contain images,
                                         2 - list of directories to folders with images.
-
-        append_mode (bool, default: False): Flag which determine if new file (output_file_name) will be created
-                                            or data will be appended to earlier made file.
-                                            If append_mode is False but file exists, ValueError is raised.
 
 TODO:
 - improve documentation.

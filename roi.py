@@ -43,8 +43,15 @@ def choose_size(image_raw: np.ndarray) -> List[int | any]:
     return roi_values
 
 
-def manage_image(source: str, output_file_name: str, labels: List[str]) -> NoReturn | bool:
+def save_roi(output_folder: str, file: str, index: int, roi_values: List[int]) -> None:
+    with open(f"{output_folder}\\{file[:-3]+'txt'}", "a") as fp:
+        fp.write(f"{index},{roi_values[0]},{roi_values[1]},{roi_values[0] + roi_values[2]},"
+                 f"{roi_values[1] + roi_values[3]}\n")
+
+
+def manage_image(source: str, output_folder: str, labels: List[str]) -> NoReturn | bool:
     image_raw = cv2.imread(source)
+    flag = 0
 
     while True:
         roi_values = choose_size(image_raw)
@@ -54,23 +61,32 @@ def manage_image(source: str, output_file_name: str, labels: List[str]) -> NoRet
         cv2.waitKey(0)
         cv2.destroyWindow("ROI")
 
-        choice = input("q - end session without save\n"
-                       "a - select ROI to this photo again")
+        choice = input("\nq - end session without save\n"
+                       "a - correct ROI to this photo\n"
+                       "o - quit with save\n"
+                       "s - select ROI for the same label\n"
+                       "r - select ROI for another label\n")
+
+        if flag == 0:
+            index = labels.index(source.split("\\")[-1].split("_")[0])
 
         if choice == 'q':
             return True
+        elif choice == 'o':
+            save_roi(output_folder, source.split("\\")[-1], index, roi_values)
+            return True
+        elif choice == 'r':
+            save_roi(output_folder, source.split("\\")[-1], index, roi_values)
+            flag = 1
+            index = int(input("Index of the new label: "))
+        elif choice == 's':
+            save_roi(output_folder, source.split("\\")[-1], index, roi_values)
         elif choice != 'a':
+            save_roi(output_folder, source.split("\\")[-1], index, roi_values)
             break
 
-    with open(output_file_name, "a") as fp:
-        file = source.split("\\")[-1]
-        which_label = file.split("_")[0]
-        fp.write(f"{file} {roi_values[0]},{roi_values[1]},{roi_values[0] + roi_values[2]},\
-                {roi_values[1] + roi_values[3]},{labels.index(which_label)}\n")
 
-
-def roi(source: str | List[str], output_file_name: str, labels: List[str], many_sources: int = 0,
-        append_mode: bool = False) -> None:
+def roi(source: str | List[str], labels: List[str], output_folder: str, many_sources: int = 0) -> None:
     """ Function allows to mark ROI thanks to easy GUI from cv2. Function automatically rescales images for fitting on
     the screen, but marked ROI is respondent for original size.
 
@@ -80,20 +96,15 @@ def roi(source: str | List[str], output_file_name: str, labels: List[str], many_
         source (str | List[str]): Directory to folder with images, directory to folder with others folders which contain
                                   images or list of directories to folders with images.
 
-        output_file_name (str): Name of file where ROI parameters will be saved. If output_file_name does not end
-                                with ".txt", function will add that suffix.
-
         labels (List[str]): List of labels names. In output file label of image will be saved as number. That number
                             is index of label name in given list.
+
+        output_folder (str): Folder where txt files with ROI values will be saved.
 
         many_sources (int, default: 0): Flag which allow to determine source type.
                                         0 - directory to folder with images,
                                         1 - directory to folder with others folders which contain images,
                                         2 - list of directories to folders with images.
-
-        append_mode (bool, default: False): Flag which determine if new file (output_file_name) will be created
-                                            or data will be appended to earlier made file.
-                                            If append_mode is False but file exists, ValueError is raised.
     """
 
     if (many_sources == 0 or many_sources == 1) and isinstance(source, list):
@@ -108,25 +119,19 @@ def roi(source: str | List[str], output_file_name: str, labels: List[str], many_
     elif not labels:
         raise ValueError("labels is empty!")
 
-    if output_file_name.split('.')[-1] != "txt":
-        output_file_name += ".txt"
-
-    if not append_mode and os.path.exists(output_file_name):
-        raise ValueError("File with this name already exist.")
-
     if many_sources == 0:
         for file in os.listdir(source):
-            if manage_image(f"{source}\\{file}", output_file_name, labels):
+            if manage_image(f"{source}\\{file}", output_folder, labels):
                 return
 
     elif many_sources == 1:
         for folder in os.listdir(source):
             for file in os.listdir(f"{source}\\{folder}"):
-                if manage_image(f"{source}\\{folder}\\{file}", output_file_name, labels):
+                if manage_image(f"{source}\\{folder}\\{file}", output_folder, labels):
                     return
 
     elif many_sources == 2:
         for directory in source:
             for file in os.listdir(directory):
-                if manage_image(f"{directory}\\{file}", output_file_name, labels):
+                if manage_image(f"{directory}\\{file}", output_folder, labels):
                     return
