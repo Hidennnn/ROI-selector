@@ -45,7 +45,7 @@ def choose_size(image_raw: np.ndarray) -> List[int | any]:
 
 def save_roi(output_folder: str, file: str, index: int, roi_values: List[int]) -> None:
     with open(f"{output_folder}\\{file[:-3]+'txt'}", "a") as fp:
-        fp.write(f"{index},{roi_values[0]},{roi_values[1]},{roi_values[0] + roi_values[2]},"
+        fp.write(f"{index} {roi_values[0]},{roi_values[1]},{roi_values[0] + roi_values[2]},"
                  f"{roi_values[1] + roi_values[3]}\n")
 
 
